@@ -1,82 +1,64 @@
 package org.mvpigs;
-import java.sql.*;
 
-public class Jdbc {
-    public boolean Logged = false;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
 
+public class FormMonsters {
+    public JPanel panelMain;
+    public JList mList;
+    public JButton updateButton;
+    public JTextField aligField;
+    public JTextField nameField;
+    public JTextField crField;
+    public JTextField typeField;
+    public JButton insertButton;
+    public JButton deleteButton;
 
-    public Connection connectDB(){
-        try{
-            String driverName = "com.mysql.jdbc.Driver";
-            Class.forName(driverName); // here is the ClassNotFoundException
+    public FormMonsters() {
+        insertButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Jdbc jdbc = new Jdbc();
+                Connection connection = jdbc.connectDB();
 
-            String serverName = "localhost";
-            String mydatabase = "bestiary";
-            String url = "jdbc:mysql://" + serverName + "/" + mydatabase;
+                jdbc.insertMonster(connection, nameField.getText(), crField.getText(), typeField.getText(), aligField.getText());
+                App.loadJList(mList);
+            }
+        });
+        updateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Jdbc jdbc = new Jdbc();
+                Connection connection = jdbc.connectDB();
 
-            String username = "root";
-            String password = "lersimchaat";
-            Connection connection = DriverManager.getConnection(url, username, password);
-            Logged = true;
-            return  connection;
-        } catch (Exception e){
-            return null;
-        }
+                DBMonster selected = (DBMonster) mList.getModel().getElementAt(mList.getSelectedIndex());
+
+                jdbc.deleteMonster(connection, selected.id);
+
+                jdbc.insertMonster(connection, nameField.getText(), crField.getText(), typeField.getText(), aligField.getText());
+
+//                jdbc.updateMonster(connection, selected.id, selected.monsterName, selected.monsterCr, selected.monsterType, selected.monsterAlignment);
+
+                App.loadJList(mList);
+            }
+        });
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Jdbc jdbc = new Jdbc();
+                Connection connection = jdbc.connectDB();
+
+                DBMonster selected = (DBMonster) mList.getModel().getElementAt(mList.getSelectedIndex());
+
+                jdbc.deleteMonster(connection, selected.id);
+                App.loadJList(mList);
+            }
+        });
     }
 
-    public ResultSet getAllEntrys(Connection connection){
-        try {
-            Statement st = connection.createStatement();
-            return st.executeQuery("Select * from monsters");
-        } catch (Exception e){
-            return  null;
-        }
-    }
-
-    public boolean updateMonster (Connection connection, int id, String name, String cr, String type, String alignment) {
-        try
-        {
-            PreparedStatement ps = connection.prepareStatement("UPDATE monsters SET name = ?, cr= ?, type = ?, alignment = ? WHERE id = ?;");
-
-            ps.setString(1,name);
-            ps.setString(2,cr);
-            ps.setString(3,type);
-            ps.setString(4,alignment);
-            //ps.setInt(5,id);
-
-            ps.executeUpdate();
-            return true;
-        }
-        catch (SQLException e)
-        {
-            return false;
-        }
-    }
-
-    public boolean deleteMonster (Connection connection, int id) {
-        try
-        {
-            PreparedStatement ps = connection.prepareStatement("DELETE FROM monsters WHERE id = " + id + ";");
-            ps.executeUpdate();
-            return true;
-        }
-        catch (SQLException se)
-        {
-            return false;
-        }
-
-    }
-
-    public boolean insertMonster (Connection connection, String name, String cr, String type, String alignment) {
-        try
-        {
-            Statement statement = connection.createStatement();
-            statement.executeUpdate("INSERT INTO monsters (name, cr, type, alignment)" + "VALUES ('" + name + "', '" + cr + "', '" + type + "', '" + alignment +"');");
-            return true;
-        }
-        catch (SQLException se)
-        {
-            return false;
-        }
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }
